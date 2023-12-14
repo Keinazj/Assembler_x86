@@ -1,0 +1,894 @@
+
+eight_bit_registers = ["al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"]
+sixteen_bit_registers =["ax", 'bx', 'cx', 'bx', 'bp', 'di' ,'si']
+thirty_two_bit_registers = ["eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"]
+
+register_map = {
+    
+    "al": (0, 0, 0),
+    "ax": (0, 0, 0),
+    "eax": (0, 0, 0),
+    
+    "cl": (0, 0, 1),
+    "cx": (0, 0, 1),
+    "ecx": (0, 0, 1),
+    
+    "dl": (0, 1, 0),
+    "dx": (0, 1, 0),
+    "edx": (0, 1, 0),
+    
+    "bl": (0, 1, 1),
+    "bx": (0, 1, 1),
+    "ebx": (0, 1, 1),        
+
+    "ah": (1, 0, 0),
+    "sp": (1, 0, 0),
+    "esp": (1, 0, 0),
+
+    "ch": (1, 0, 1),
+    "bp": (1, 0, 1),
+    "ebp": (1, 0, 1),
+    
+    "dh": (1, 1, 0),
+    "si": (1, 1, 0),
+    "esi": (1, 1, 0),
+    
+    "bh": (1, 1, 1),
+    "di": (1, 1, 1),
+    "edi": (1, 1, 1),        
+    }
+
+memory_map = {
+
+    
+    "[al]": (0, 0, 0),
+    "[ax]": (0, 0, 0),
+    "[eax]": (0, 0, 0),
+    
+    "[cl]": (0, 0, 1),
+    "[cx]": (0, 0, 1),
+    "[ecx]": (0, 0, 1),
+    
+    "[dl]": (0, 1, 0),
+    "[dx]": (0, 1, 0),
+    "[edx]": (0, 1, 0),
+    
+    "[bl]": (0, 1, 1),
+    "[bx]": (0, 1, 1),
+    "[ebx]": (0, 1, 1),        
+
+    "[ah]": (1, 0, 0),
+    "[sp]": (1, 0, 0),
+    "[esp]": (1, 0, 0),
+
+    "[ch]": (1, 0, 1),
+    "[bp]": (1, 0, 1),
+    "[ebp]": (1, 0, 1),
+    
+    "[dh]": (1, 1, 0),
+    "[si]": (1, 1, 0),
+    "[esi]": (1, 1, 0),
+    
+    "[bh]": (1, 1, 1),
+    "[di]": (1, 1, 1),
+    "[edi]": (1, 1, 1),        
+    }
+
+rd_rw_map = {
+    # Integer values in decimal form
+    "ax": 0, "cx": 1, "dx": 2, "bx": 3,
+    "sp": 4, "bp": 5, "si": 6, "di": 7,
+    "eax": 0, "ecx": 1, "edx": 2, "ebx": 3,
+    "esp": 4, "ebp": 5, "esi": 6, "edi": 7,
+}
+    
+
+def add(instruction, op_code, mod_rm):
+    sixteen = False
+    
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
+
+     
+        mod_rm[0] = 1
+        mod_rm[1] = 1  # for register
+        
+        register1 = instruction[1].lower()
+        register2 = instruction[2].lower()
+        
+        
+        
+        if register1 in eight_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 0  # 8 bit reg
+        elif register1 in sixteen_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 16 bit reg
+            sixteen = True
+        
+        elif register1 in thirty_two_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 32 bit reg
+
+        if register1 in register_map and register2 in register_map:
+            mod_rm[5:8] = register_map[register1]
+            mod_rm[2:5] = register_map[register2]
+            
+            op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+            mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)
+            
+            if sixteen:
+                result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+                return result
+            else:
+                 result=(op_code_hex + " " + mod_rm_hex)
+                 return result
+              
+            
+    elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
+    # mem/reg
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 0
+        
+        register = instruction[2]
+        memory = instruction[1]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+                
+                op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+                mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)
+
+                result = (op_code_hex + " " + mod_rm_hex)
+                return result
+                
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                
+                op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+                mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)
+                
+                if sixteen:
+                    result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+                    return result
+                
+                else:
+                    result = (op_code_hex + " " + mod_rm_hex)
+                    return result
+                    
+                         
+    elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
+    # reg/mem
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 1
+        
+        register = instruction[1]
+        memory = instruction[2]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                
+            op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+            mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)            
+            
+            if sixteen:
+
+                result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+                return result
+            else:
+                result = (op_code_hex + " " + mod_rm_hex)
+                return result
+                  
+        
+#####################################################
+
+def sub(instruction, op_code, mod_rm):
+
+    sixteen = False
+    
+    
+    op_code[2]=1
+    op_code[4]=1
+   
+    
+    
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
+
+     
+        mod_rm[0] = 1
+        mod_rm[1] = 1  # for register
+        
+        register1 = instruction[1].lower()
+        register2 = instruction[2].lower()
+        
+        
+        if register1 in eight_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 0  # 8 bit reg
+        elif register1 in sixteen_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 16 bit reg
+            sixteen = True
+        
+        elif register1 in thirty_two_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 32 bit reg
+
+        if register1 in register_map and register2 in register_map:
+            mod_rm[5:8] = register_map[register1]
+            mod_rm[2:5] = register_map[register2]
+            
+            
+            
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+                  
+            
+    elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
+    # mem/reg
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 0
+        
+        register = instruction[2]
+        memory = instruction[1]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+                
+                                
+                
+    elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
+    # reg/mem
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 1
+        
+        register = instruction[1]
+        memory = instruction[2]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                    
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+       
+        
+#####################################################
+        
+
+def And(instruction, op_code, mod_rm):
+    
+    op_code[2]=1
+    sixteen = False
+    
+    
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
+
+     
+        mod_rm[0] = 1
+        mod_rm[1] = 1  # for register
+        
+        register1 = instruction[1].lower()
+        register2 = instruction[2].lower()
+        
+        
+        if register1 in eight_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 0  # 8 bit reg
+        elif register1 in sixteen_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 16 bit reg
+            sixteen = True
+        
+        elif register1 in thirty_two_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 32 bit reg
+
+        if register1 in register_map and register2 in register_map:
+            mod_rm[5:8] = register_map[register1]
+            mod_rm[2:5] = register_map[register2]
+            
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+              
+            
+    elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
+    # mem/reg
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 0
+        
+        register = instruction[2]
+        memory = instruction[1]
+        
+        if memory in memory_map:
+        
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen= True
+                
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+        
+                
+    elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
+    # reg/mem
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 1
+        
+        register = instruction[1]
+        memory = instruction[2]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                   
+                    
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result            
+                       
+
+#####################################################
+        
+
+def Or(instruction, op_code, mod_rm):
+    
+    op_code[4]=1
+    sixteen = False
+
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
+
+     
+        mod_rm[0] = 1
+        mod_rm[1] = 1  # for register
+        
+        register1 = instruction[1].lower()
+        register2 = instruction[2].lower()
+        
+        
+        if register1 in eight_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 0  # 8 bit reg
+        elif register1 in sixteen_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 16 bit reg
+            sixteen = True
+        
+        elif register1 in thirty_two_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 32 bit reg
+
+        if register1 in register_map and register2 in register_map:
+            mod_rm[5:8] = register_map[register1]
+            mod_rm[2:5] = register_map[register2]
+            
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+        
+            
+    elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
+    # mem/reg
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 0
+        
+        register = instruction[2]
+        memory = instruction[1]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+        
+                
+    elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
+    # reg/mem
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 1
+        
+        register = instruction[1]
+        memory = instruction[2]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                    
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result            
+                   
+        
+#####################################################
+        
+
+def Xor(instruction, op_code, mod_rm):
+    sixteen = False
+    
+    op_code[2]=1
+    op_code[3]=1
+ 
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
+
+     
+        mod_rm[0] = 1
+        mod_rm[1] = 1  # for register
+        
+        register1 = instruction[1].lower()
+        register2 = instruction[2].lower()
+        
+        
+        if register1 in eight_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 0  # 8 bit reg
+        elif register1 in sixteen_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 16 bit reg
+            sixteen = True
+        
+        elif register1 in thirty_two_bit_registers:
+            op_code[6] = 0
+            op_code[7] = 1  # 32 bit reg
+
+        if register1 in register_map and register2 in register_map:
+            mod_rm[5:8] = register_map[register1]
+            mod_rm[2:5] = register_map[register2]
+            
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+        
+            
+    elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
+    # mem/reg
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 0
+        
+        register = instruction[2]
+        memory = instruction[1]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        
+                
+    elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
+    # reg/mem
+    
+        mod_rm[0] = 0
+        mod_rm[1] = 0  # for memory handling
+        
+        op_code[6] = 1
+        
+        register = instruction[1]
+        memory = instruction[2]
+        
+        if memory in memory_map:
+            mod_rm[5:8] = memory_map[memory]
+            if register in eight_bit_registers :
+                op_code[7] = 0
+                mod_rm[2:5] = register_map[register]
+            elif register in sixteen_bit_registers or register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+                if register in sixteen_bit_registers:
+                    sixteen = True
+                    
+        op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
+            
+        if sixteen:
+
+            result = ('66 ' + op_code_hex + " " + mod_rm_hex)
+            return result
+        
+        else:
+            result = (op_code_hex + " " + mod_rm_hex)
+            return result            
+                   
+        
+#####################################################
+def inc(register):
+    
+    base_opcode = 40  # Base opcode in decimal
+
+    register = register.lower()
+    
+    if register in rd_rw_map:
+        opcode = base_opcode + rd_rw_map[register]
+
+
+    return opcode
+
+
+#####################################################
+def dec(register):
+    
+    base_opcode = 48  # Base opcode in decimal
+
+    register = register.lower()
+    
+    if register in rd_rw_map:
+        opcode = base_opcode + rd_rw_map[register]
+
+    return opcode
+
+    
+#####################################################
+   
+   
+def isImmediate(operand):
+    for i in range(len(operand)):
+        if (operand[i] >='0' and operand[i] <='9') or (operand[i]>='A' and operand[i] <= 'F') or (operand[i]>='a' and operand[i]<='f') or (i==len(operand)-1 and (operand[i] == 'h' or operand[i]=='H')):
+            continue
+        else:
+            return False
+    return True
+
+
+def toLittleEndian32(operand):
+    if (operand[-1] == 'h' or operand[-1]== 'H'):
+        operand= operand[0:-1]
+
+    val = "" + "0" * (8-len(operand)) + operand
+    out = ""
+    i=0
+    while i < (len(val)):
+        out = val[i]  + val[i+1] +" " + out
+        i+=2
+    return out
+
+#####################################################
+
+def push(value):
+    sixteen = False
+    result=''
+    str=''
+    base_opcode = 50
+
+    value = value.lower()
+    
+    if value in rd_rw_map:
+        
+        opcode = base_opcode + rd_rw_map[value]
+        return opcode
+        
+        
+    #handling immediate
+        
+    elif(isImmediate(result)):
+    
+        if value[-1] == 'h' or value[-1] == 'H':
+            value = value[:-1]
+            if (int(value,16) < 2**8):
+                result = "6A " + value
+            elif (int(value,16) < 2**16):
+                result = "66 68 " + toLittleEndian32(value)
+            elif (int(value,16) < 2**32):
+                result = "68 " + toLittleEndian32(value)
+        elif value[-1] == 'b' or value[-1] == 'B':
+                value = value[:-1]
+                if (int(value,2) < 2**8):
+                    result = "6A " + value
+                elif (int(value,2) < 2**16):
+                    result = "66 68 " + toLittleEndian32(value)
+                elif (int(value,2) < 2**32):
+                    result = "68 " + toLittleEndian32(value)
+        elif value[-1] == 'd' or value[-1] == 'D':
+            
+            value = value[:-1]
+            if (int(value,10) < 2**8):
+                result = "6A " + value
+            elif (int(value,10) < 2**16):
+                result = "66 68 " + toLittleEndian32(value)
+            elif (int(value,10) < 2**32):
+                result = "68 " + toLittleEndian32(value)
+
+
+        else:
+            str = hex(int(value))[2:]
+            if (len(hex(int(value))[2:])) == 1:
+                str = "0" + hex(int(value))[2:]
+            if (int(value) < 2**8):
+                result = "6A " + str
+            elif (int(value) < 2**16):
+                result = "66 68 " + toLittleEndian32(str)
+            elif (int(value) < 2**32):
+                result = "68 " + toLittleEndian32(str)
+
+    return (result)
+    
+#####################################################
+        
+def pop(register):
+    
+    base_opcode = 58 # Base opcode in decimal
+
+    register = register.lower()
+    
+    if register in rd_rw_map:
+        opcode = base_opcode + rd_rw_map[register]
+
+    return opcode
+
+#####################################################
+
+inputFile = open("input_assembly.txt","r")
+outputFile = open("output_assembly.txt","w")
+
+op_code = [0] * 8
+mod_rm = [0] * 8
+address = 0x0000000000000000
+
+opcode_str = ""
+
+
+for line in inputFile:
+    line = line.rstrip()
+    if line =='':
+        continue
+    inp= line.split(' ')
+    inp[1] = inp[1].replace("," ,"")
+ 
+    
+    if inp[0].lower() =="add":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 2
+        print(add(inp,op_code,mod_rm))
+        
+    elif inp[0].lower() =="sub":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 2
+        print(sub(inp,op_code,mod_rm))
+        
+    elif inp[0] =="And":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 2
+        print(And(inp,op_code,mod_rm))
+        
+    elif inp[0] =="Or":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 2
+        print(Or(inp,op_code,mod_rm))
+        
+    elif inp[0].lower() =="xor":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 2
+        print(Xor(inp,op_code,mod_rm))
+        
+    elif inp[0].lower() =="inc":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 1
+        if inp[1] in sixteen_bit_registers:
+            print('66 ', end='')
+        print(inc(inp[1]))
+        
+    elif inp[0].lower() =="dec":
+       formatted_address = f'0x{address:016x}'
+       print(formatted_address,end='	')
+       address=address + 1
+       if inp[1] in sixteen_bit_registers:
+            print('66 ', end='')
+       print(dec(inp[1]))
+       
+    elif inp[0].lower() =="push":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address =address + 1
+        if(inp[1] in sixteen_bit_registers):
+            print('66 ',end='')
+        print(push(inp[1]))
+        
+    elif inp[0].lower() =="pop":
+        formatted_address = f'0x{address:016x}'
+        print(formatted_address,end='	')
+        address=address + 1
+        if inp[1] in sixteen_bit_registers:
+            print('66 ', end='')
+        print(pop(inp[1]))
+
+
+        
+
+    
+    
+    
+
+
