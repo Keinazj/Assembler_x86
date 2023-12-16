@@ -1,6 +1,6 @@
 
 eight_bit_registers = ["al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"]
-sixteen_bit_registers =["ax", 'bx', 'cx', 'bx', 'bp', 'di' ,'si']
+sixteen_bit_registers =["ax", 'bx', 'cx', 'dx', 'bp', 'di' ,'si']
 thirty_two_bit_registers = ["eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"]
 
 register_map = {
@@ -95,8 +95,7 @@ def add(instruction, op_code, mod_rm):
         register1 = instruction[1].lower()
         register2 = instruction[2].lower()
         
-        
-        
+                
         if register1 in eight_bit_registers:
             op_code[6] = 0
             op_code[7] = 0  # 8 bit reg
@@ -121,7 +120,7 @@ def add(instruction, op_code, mod_rm):
                 return result
             else:
                  result=(op_code_hex + " " + mod_rm_hex)
-                 return result
+                 return str(result)
               
             
     elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
@@ -162,7 +161,7 @@ def add(instruction, op_code, mod_rm):
                 
                 else:
                     result = (op_code_hex + " " + mod_rm_hex)
-                    return result
+                    return str(result)
                     
                          
     elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
@@ -196,7 +195,7 @@ def add(instruction, op_code, mod_rm):
                 return result
             else:
                 result = (op_code_hex + " " + mod_rm_hex)
-                return result
+                return str(result)
                   
         
 #####################################################
@@ -208,8 +207,7 @@ def sub(instruction, op_code, mod_rm):
     
     op_code[2]=1
     op_code[4]=1
-   
-    
+
     
     if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
 
@@ -285,8 +283,7 @@ def sub(instruction, op_code, mod_rm):
             result = (op_code_hex + " " + mod_rm_hex)
             return result
                 
-                                
-                
+                                          
     elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
     # reg/mem
     
@@ -322,8 +319,7 @@ def sub(instruction, op_code, mod_rm):
             return result
        
         
-#####################################################
-        
+#####################################################      
 
 def And(instruction, op_code, mod_rm):
     
@@ -331,16 +327,13 @@ def And(instruction, op_code, mod_rm):
     sixteen = False
     
     
-    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
-
-     
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers   
         mod_rm[0] = 1
         mod_rm[1] = 1  # for register
         
         register1 = instruction[1].lower()
         register2 = instruction[2].lower()
-        
-        
+           
         if register1 in eight_bit_registers:
             op_code[6] = 0
             op_code[7] = 0  # 8 bit reg
@@ -367,8 +360,7 @@ def And(instruction, op_code, mod_rm):
         
         else:
             result = (op_code_hex + " " + mod_rm_hex)
-            return result
-              
+            return result            
             
     elif instruction[1] in memory_map and (instruction[2] in eight_bit_registers or instruction[2] in sixteen_bit_registers or instruction[2] in thirty_two_bit_registers):
     # mem/reg
@@ -397,15 +389,12 @@ def And(instruction, op_code, mod_rm):
         mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
             
         if sixteen:
-
             result = ('66 ' + op_code_hex + " " + mod_rm_hex)
-            return result
-        
+            return result       
         else:
             result = (op_code_hex + " " + mod_rm_hex)
             return result
-        
-                
+                     
     elif instruction[2] in memory_map and (instruction[1] in eight_bit_registers or instruction[1] in sixteen_bit_registers or instruction[1] in thirty_two_bit_registers):
     # reg/mem
     
@@ -427,20 +416,16 @@ def And(instruction, op_code, mod_rm):
                 mod_rm [2:5] = register_map[register]
                 if register in sixteen_bit_registers:
                     sixteen = True
-                   
-                    
+                                
         op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
-        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)      
-            
+        mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)
+        
         if sixteen:
-
             result = ('66 ' + op_code_hex + " " + mod_rm_hex)
             return result
-        
         else:
             result = (op_code_hex + " " + mod_rm_hex)
-            return result            
-                       
+            return result                             
 
 #####################################################
         
@@ -450,9 +435,7 @@ def Or(instruction, op_code, mod_rm):
     op_code[4]=1
     sixteen = False
 
-    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers 
-
-     
+    if instruction[1] not in memory_map and instruction[2] not in memory_map: # both are registers     
         mod_rm[0] = 1
         mod_rm[1] = 1  # for register
         
@@ -689,8 +672,7 @@ def inc(register):
         opcode = base_opcode + rd_rw_map[register]
 
 
-    return opcode
-
+    return str(opcode)
 
 #####################################################
 def dec(register):
@@ -702,7 +684,7 @@ def dec(register):
     if register in rd_rw_map:
         opcode = base_opcode + rd_rw_map[register]
 
-    return opcode
+    return str(opcode)
 
     
 #####################################################
@@ -743,18 +725,17 @@ def push(value):
         
         opcode = base_opcode + rd_rw_map[value]
         return opcode
-        
-        
+              
     #handling immediate
         
-    elif(isImmediate(result)):
+    elif(isImmediate(value)):
     
         if value[-1] == 'h' or value[-1] == 'H':
             value = value[:-1]
             if (int(value,16) < 2**8):
                 result = "6A " + value
             elif (int(value,16) < 2**16):
-                result = "66 68 " + toLittleEndian32(value)
+                result = "68 " + toLittleEndian32(value)
             elif (int(value,16) < 2**32):
                 result = "68 " + toLittleEndian32(value)
         elif value[-1] == 'b' or value[-1] == 'B':
@@ -762,7 +743,7 @@ def push(value):
                 if (int(value,2) < 2**8):
                     result = "6A " + value
                 elif (int(value,2) < 2**16):
-                    result = "66 68 " + toLittleEndian32(value)
+                    result = "68 " + toLittleEndian32(value)
                 elif (int(value,2) < 2**32):
                     result = "68 " + toLittleEndian32(value)
         elif value[-1] == 'd' or value[-1] == 'D':
@@ -771,11 +752,9 @@ def push(value):
             if (int(value,10) < 2**8):
                 result = "6A " + value
             elif (int(value,10) < 2**16):
-                result = "66 68 " + toLittleEndian32(value)
+                result = "68 " + toLittleEndian32(value)
             elif (int(value,10) < 2**32):
                 result = "68 " + toLittleEndian32(value)
-
-
         else:
             str = hex(int(value))[2:]
             if (len(hex(int(value))[2:])) == 1:
@@ -783,7 +762,7 @@ def push(value):
             if (int(value) < 2**8):
                 result = "6A " + str
             elif (int(value) < 2**16):
-                result = "66 68 " + toLittleEndian32(str)
+                result = "68 " + toLittleEndian32(str)
             elif (int(value) < 2**32):
                 result = "68 " + toLittleEndian32(str)
 
@@ -800,95 +779,197 @@ def pop(register):
     if register in rd_rw_map:
         opcode = base_opcode + rd_rw_map[register]
 
-    return opcode
+    return str(opcode)
 
 #####################################################
 
-inputFile = open("input_assembly.txt","r")
-outputFile = open("output_assembly.txt","w")
+inputFile = open("input_assembly.txt", "r")
+outputFile = open("output_assembly.txt", "w")
 
 op_code = [0] * 8
 mod_rm = [0] * 8
 address = 0x0000000000000000
-
+machine_code_lines = []
 opcode_str = ""
 
+labels = {}
+jumps = []
+idx = -1
 
 for line in inputFile:
+    idx+=1
     line = line.rstrip()
-    if line =='':
+    if line == '':
         continue
-    inp= line.split(' ')
-    inp[1] = inp[1].replace("," ,"")
- 
     
-    if inp[0].lower() =="add":
+    inp = line.split(' ')
+    if inp[0].endswith(':'):
+        label = inp[0][:-1]  # Remove :
+        labels[label] = address  # Store the label and its address in the dictionary
+        continue
+    else:
+        inp[1] = inp[1].replace(",", "")
+        output_line = ""
         formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 2
-        print(add(inp,op_code,mod_rm))
+        output_line += formatted_address + '\t'
+
+    
+    if inp[0].lower() == 'jmp':  
+        if inp[1] in labels:  # Check if the jump target is a defined label
+            jump_target_address = labels[inp[1]]
+            if jump_target_address < address:  # Check if it's a backward jump
+                jump_offset = jump_target_address - (address + 2)  # Calculate the jump offset
+                if jump_offset < 0:
+                     jump_offset = 256 + jump_offset  
+                output_line += f'eb {jump_offset:02x}'  # backwardJump output
+            address+=2
+            
+        else:  # It's a forward jump
+            output_line += 'eb 00'  # a placeholder for the forward jump machine code
+            jumps.append((idx,formatted_address, inp[1]))  # Store the jump line and label
+            machine_code_lines.append(output_line)
+            address+=2 
+            continue   
+    
+    elif inp[0].lower() =="add":
+        op_code = [0] * 8
+        if inp[1] in sixteen_bit_registers:
+            address+=3
+        else:
+            address=address + 2
+        output_line+=(add(inp,op_code,mod_rm))
+        output_text = '\n'.join(machine_code_lines)
+        
         
     elif inp[0].lower() =="sub":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 2
-        print(sub(inp,op_code,mod_rm))
+        op_code = [0] * 8
+        if inp[1] in sixteen_bit_registers:
+            address+=3
+        else:
+            address+=2
+            
+        output_line+=(sub(inp,op_code,mod_rm))
+        output_text = '\n'.join(machine_code_lines)
+        
         
     elif inp[0] =="And":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 2
-        print(And(inp,op_code,mod_rm))
+        op_code = [0] * 8
+        if inp[1] in sixteen_bit_registers:
+            address+=3
+        else:
+            address=address + 2
+        output_line+=(And(inp,op_code,mod_rm))
+        output_text = '\n'.join(machine_code_lines)
         
     elif inp[0] =="Or":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 2
-        print(Or(inp,op_code,mod_rm))
+        op_code = [0] * 8
+        if inp[1] in sixteen_bit_registers:
+            address+=3
+        else:
+            address=address + 2
+       
+        output_line+=(Or(inp,op_code,mod_rm))
+        output_text = '\n'.join(machine_code_lines)
         
     elif inp[0].lower() =="xor":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 2
-        print(Xor(inp,op_code,mod_rm))
+        op_code = [0] * 8
+    
+        if inp[1] in sixteen_bit_registers:
+            address+=3
+        else:
+            address=address + 2
+        output_line+=(Xor(inp,op_code,mod_rm))
+        output_text = '\n'.join(machine_code_lines)
         
     elif inp[0].lower() =="inc":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 1
+        op_code = [0] * 8
+        
         if inp[1] in sixteen_bit_registers:
-            print('66 ', end='')
-        print(inc(inp[1]))
+            address+=2
+        else:
+            address=address + 1
+        if inp[1] in sixteen_bit_registers:
+            output_line+=('66 ')
+            
+        output_line+=(inc(inp[1]))
+        output_text = '\n'.join(machine_code_lines)
         
     elif inp[0].lower() =="dec":
-       formatted_address = f'0x{address:016x}'
-       print(formatted_address,end='	')
-       address=address + 1
-       if inp[1] in sixteen_bit_registers:
-            print('66 ', end='')
-       print(dec(inp[1]))
-       
-    elif inp[0].lower() =="push":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address =address + 1
-        if(inp[1] in sixteen_bit_registers):
-            print('66 ',end='')
-        print(push(inp[1]))
-        
-    elif inp[0].lower() =="pop":
-        formatted_address = f'0x{address:016x}'
-        print(formatted_address,end='	')
-        address=address + 1
+        op_code = [0] * 8
+
         if inp[1] in sixteen_bit_registers:
-            print('66 ', end='')
-        print(pop(inp[1]))
-
-
+            address+=2
+        else:
+            address=address + 1
+        if inp[1] in sixteen_bit_registers:
+            output_line+=('66 ')
+        output_line+=(dec(inp[1]))
+        output_text = '\n'.join(machine_code_lines)
         
+            
+    elif inp[0].lower() =="pop":
+        op_code = [0] * 8
+        if inp[1] in thirty_two_bit_registers:
+            address+=2
+        else:
+            address=address + 1
+        if inp[1] in sixteen_bit_registers:
+            output_line+=('66 ')
+        output_line+=(pop(inp[1]))
+        output_text = '\n'.join(machine_code_lines)
+        
+        
+    elif inp[0].lower() =="push":
+        value_avalie = inp[1]
+        op_code = [0] * 8
+        if inp[1] in sixteen_bit_registers:
+            address+=2
+        elif inp[1] in thirty_two_bit_registers:
+            address=address + 1
+        else:
+            if (inp[1][-1] >'9' or inp[1][-1] <'0'):
+                inp[1] = inp[1][:-1]
+            if int(inp[1],16)<= 255:
+                address+=2
+            elif int(inp[1],16) >255:
+                address+=5
+               
+        if inp[1] in sixteen_bit_registers:
+            output_line+=('66 ')
+        inp[1] = value_avalie
+        output_line+=str(push(inp[1]))
+        output_text = '\n'.join(machine_code_lines)
+        
+        
+    machine_code_lines.append(output_line)
+    
+
+for line_index , jump_line, label in jumps:
+    jump_target_address = labels[label]
+   # line_index = int(jump_line, 16)
+    jump_offset = jump_target_address - (int(jump_line, 16)+2) # to jump to the next line of the jmp instruction 
+
+    # Two's complement
+    jump_offset = (~(-jump_offset) + 1) & 0xFF
+    formatted_hex_offset = f'{jump_offset:02x}' 
+  
+    # Replace the placeholder in the specific line and update the list
+    machine_code_lines[line_index] = machine_code_lines[line_index].replace('eb 00', f'eb {formatted_hex_offset}')
+    #print(machine_code_lines)
+
+# create the output text by joining all the elements from 'machine_code_lines'
+    output_text = '\n'.join(machine_code_lines)
+    
+for line in machine_code_lines:
+    outputFile.write(output_text)
+    print(line)
+
+outputFile.close() 
+inputFile.close()        
 
     
     
     
+
 
 
