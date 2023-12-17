@@ -804,6 +804,7 @@ for line in inputFile:
     
     inp = line.split(' ')
     if inp[0].endswith(':'):
+        idx-=1
         label = inp[0][:-1]  # Remove :
         labels[label] = address  # Store the label and its address in the dictionary
         continue
@@ -814,10 +815,12 @@ for line in inputFile:
         output_line += formatted_address + '\t'
 
     
-    if inp[0].lower() == 'jmp':  
+    if inp[0].lower() == 'jmp':
+        
         if inp[1] in labels:  # Check if the jump target is a defined label
             jump_target_address = labels[inp[1]]
             if jump_target_address < address:  # Check if it's a backward jump
+              
                 jump_offset = jump_target_address - (address + 2)  # Calculate the jump offset
                 if jump_offset < 0:
                      jump_offset = 256 + jump_offset  
@@ -825,6 +828,7 @@ for line in inputFile:
             address+=2
             
         else:  # It's a forward jump
+        
             output_line += 'eb 00'  # a placeholder for the forward jump machine code
             jumps.append((idx,formatted_address, inp[1]))  # Store the jump line and label
             machine_code_lines.append(output_line)
@@ -955,7 +959,7 @@ for line_index , jump_line, label in jumps:
   
     # Replace the placeholder in the specific line and update the list
     machine_code_lines[line_index] = machine_code_lines[line_index].replace('eb 00', f'eb {formatted_hex_offset}')
-    #print(machine_code_lines)
+    print(machine_code_lines)
 
 # create the output text by joining all the elements from 'machine_code_lines'
     output_text = '\n'.join(machine_code_lines)
