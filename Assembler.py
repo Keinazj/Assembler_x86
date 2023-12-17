@@ -818,8 +818,7 @@ for line in machine_code_lines:
 outputFile.close() 
 inputFile.close()        
 
-    
-    
+     
     
 
 
