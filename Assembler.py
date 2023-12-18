@@ -140,24 +140,30 @@ def add(instruction, op_code, mod_rm):
                 result = (op_code_hex + " " + mod_rm_hex)
                 return str(result)                   
                          
-    elif instruction[2] in memory_map and instruction[1] in thirty_two_bit_registers:
+
+    elif instruction[2] in memory_map and ( instruction[1] in thirty_two_bit_registers):
     # reg/mem
-    
+
         mod_rm[0] = 0
         mod_rm[1] = 0  # for memory handling
-        
+
         op_code[6] = 1
-        
+
         register = instruction[1]
         memory = instruction[2]
-        
+
         if memory in memory_map:
             mod_rm[5:8] = memory_map[memory]
-            
+
+            if register in thirty_two_bit_registers:
+                op_code[7] =1
+                mod_rm [2:5] = register_map[register]
+
             op_code_hex = hex(int(''.join(map(str, op_code)), 2))[2:].zfill(2)
             mod_rm_hex = hex(int(''.join(map(str, mod_rm)), 2))[2:].zfill(2)            
+
             result = (op_code_hex + " " + mod_rm_hex)
-            return str(result)                 
+            return result
         
 #####################################################
 
@@ -519,12 +525,12 @@ def Xor(instruction, op_code, mod_rm):
 #####################################################
 def inc(register):
     
-    base_opcode = 40  # Base opcode in decimal
-
+    base_opcode = 0x40  # Base opcode 
     register = register.lower()
     
     if register in rd_rw_map:
-        opcode = base_opcode + rd_rw_map[register]
+        opcode = hex(base_opcode + rd_rw_map[register])
+        opcode = opcode.replace('0x','')
 
 
     return str(opcode)
@@ -532,12 +538,13 @@ def inc(register):
 #####################################################
 def dec(register):
     
-    base_opcode = 48  # Base opcode in decimal
+    base_opcode = 0x48  # Base opcode 
 
     register = register.lower()
     
     if register in rd_rw_map:
-        opcode = base_opcode + rd_rw_map[register]
+        opcode = hex(base_opcode + rd_rw_map[register])
+        opcode = opcode.replace('0x','')
 
     return str(opcode)
  
@@ -569,13 +576,14 @@ def push(value):
     sixteen = False
     result=''
     str=''
-    base_opcode = 50
+    base_opcode = 0x50
 
     value = value.lower()
     
     if value in rd_rw_map:
         
-        opcode = base_opcode + rd_rw_map[value]
+        opcode = hex(base_opcode + rd_rw_map[value])
+        opcode = opcode.replace('0x','')
         return opcode
               
     #handling immediate
@@ -624,12 +632,13 @@ def push(value):
         
 def pop(register):
     
-    base_opcode = 58 # Base opcode in decimal
+    base_opcode = 0x58 # Base opcode in decimal
 
     register = register.lower()
     
     if register in rd_rw_map:
-        opcode = base_opcode + rd_rw_map[register]
+        opcode = hex(base_opcode + rd_rw_map[register])
+        opcode = opcode.replace('0x','')
 
     return str(opcode)
 
@@ -806,7 +815,7 @@ for line_index , jump_line, label in jumps:
   
     # Replace the placeholder in the specific line and update the list
     machine_code_lines[line_index] = machine_code_lines[line_index].replace('eb 00', f'eb {formatted_hex_offset}')
-    print(machine_code_lines)
+    #print(machine_code_lines)
 
 # create the output text by joining all the elements from 'machine_code_lines'
     output_text = '\n'.join(machine_code_lines)
