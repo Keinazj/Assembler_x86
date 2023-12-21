@@ -3,6 +3,7 @@ eight_bit_registers = ["al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"]
 sixteen_bit_registers =["ax", 'bx', 'cx', 'dx', 'bp', 'di' ,'si']
 thirty_two_bit_registers = ["eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"]
 
+
 register_map = {
     
     "al": (0, 0, 0),
@@ -189,6 +190,7 @@ def sub(instruction, op_code, mod_rm):
         elif register1 in thirty_two_bit_registers:
             op_code[6] = 0
             op_code[7] = 1  # 32 bit reg
+            
 
         if register1 in register_map and register2 in register_map:
             mod_rm[5:8] = register_map[register1]
@@ -249,6 +251,10 @@ def sub(instruction, op_code, mod_rm):
         
         result = (op_code_hex + " " + mod_rm_hex)
         return result
+    
+
+    else:
+        print("format not supported")
           
 #####################################################      
 
@@ -531,19 +537,26 @@ def inc(register):
     if register in rd_rw_map:
         opcode = hex(base_opcode + rd_rw_map[register])
         opcode = opcode.replace('0x','')
-
+    elif register in eight_bit_registers:
+        
+        opcode = 'fe ' + hex(int('11'  + '000' + str(register_map[register][0]) + str(register_map[register][1])+  str(register_map[register][2]),2))
+        opcode = opcode.replace('0x','')
 
     return str(opcode)
 
 #####################################################
 def dec(register):
     
-    base_opcode = 0x48  # Base opcode 
+    base_opcode = 0x48  # Base opcode
 
     register = register.lower()
     
     if register in rd_rw_map:
         opcode = hex(base_opcode + rd_rw_map[register])
+        opcode = opcode.replace('0x','')
+    elif register in eight_bit_registers:
+        
+        opcode = 'fe ' + hex(int('11'  + '001' + str(register_map[register][0]) + str(register_map[register][1])+  str(register_map[register][2]),2))
         opcode = opcode.replace('0x','')
 
     return str(opcode)
@@ -716,7 +729,7 @@ def  main2():
             output_line+=(sub(inp,op_code,mod_rm))
             output_text = '\n'.join(machine_code_lines)       
             
-        elif inp[0] =="And":
+        elif inp[0].lower() =="and":
             op_code = [0] * 8
             if inp[1] in sixteen_bit_registers:
                 address+=3
@@ -725,7 +738,7 @@ def  main2():
             output_line+=(And(inp,op_code,mod_rm))
             output_text = '\n'.join(machine_code_lines)
             
-        elif inp[0] =="Or":
+        elif inp[0].lower() =="or":
             op_code = [0] * 8
             if inp[1] in sixteen_bit_registers:
                 address+=3
@@ -825,24 +838,27 @@ def  main2():
         print(line)
 
 def main():
-    get_input = int(input("how do you want to give the input? type 1 for typing your input , type 2 for giving a File\n"))
-    if (get_input==1):
-        print("enter your input:")
-        while True:
-            instruction = input()
-            if instruction =='':
-                return
-            inputFile = open("input_assembly.txt","w")
-            print(instruction,file=inputFile)
-            inputFile.close()
-            main2()
-            outputFile = open("output_assembly.txt","r")
+    try:
+        get_input = int(input("how do you want to give the input? type 1 for typing your input , type 2 for giving a File\n"))
+        if (get_input==1):
+            print("enter your input:")
+            while True:
+                instruction = input()
+                if instruction =='':
+                    return
+                inputFile = open("input_assembly.txt","w")
+                print(instruction,file=inputFile)
+                inputFile.close()
+                main2()
+                outputFile = open("output_assembly.txt","r")
 
-            outputFile.close()
-    elif(get_input==2):
-        main2()
-    else:
-        print("invalid input")
+                outputFile.close()
+        elif(get_input==2):
+            main2()
+        else:
+            print("invalid input")
+    except:
+        print("Error!")
         
 main()
                     
