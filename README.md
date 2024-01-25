@@ -1,11 +1,15 @@
 In the first phase of the project, we generated a machine code for each instruction in the code segment. It supports add,sub,and,or,xor,push,pop,inc,dec and jmp. It also shows the address of each instruction.
 In the second phase, we should display the memory and how the machine codes are placed in the memory. It also shows how stack segment, data segment and code segment are filled. 
 There is a microcontroller which consists of 256 bytes of memory. Each segment has 32 bytes. the input format is shown below: 
+
 .stack(160)
 
 .data(90)
+
 myByte Byte
+
 myWord Word
+
 Mydword dword
 
 .code(40)
