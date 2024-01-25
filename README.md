@@ -13,13 +13,21 @@ myWord Word
 Mydword dword
 
 .code(40)
+
 Add ebx, ecx
+
 Push edx
+
 Push 11
+
 Push 12345
+
 Push ecx
+
 Sub ecx, ecx
+
 Pop eax
+
 Push ax
 
 The number in the () in front of each segment shows where the segment starts. 
