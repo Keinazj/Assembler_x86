@@ -816,14 +816,14 @@ def  main():
                 
                 if( (inp[1][-1] >'9' or inp[1][-1] <'0')):
                     inp[1] = inp[1][:-1]
-                if int(inp[1],16)<= 255 : # pushed the number in a byte 
+                if int(inp[1])<= 255 : # pushed the number in a byte 
                     address+=2
                     stack += ["num8"]  + ["MM"] *3  
-                elif int(inp[1],16) <2**16: # pushed the number in a 2 bytes
+                elif int(inp[1]) <2**16: # pushed the number in a 2 bytes
                     address+=5
                     stack += ["num16"]*2  + ["MM"] *2
                     
-                elif int(inp[1],16) >=2**16:  # pushed the number in a 4 bytes
+                elif int(inp[1]) >=2**16:  # pushed the number in a 4 bytes
                     address+=5
                     stack += ["num32"] * 4
                         
@@ -1008,6 +1008,7 @@ main2()
 
      
     
+
 
 
 
